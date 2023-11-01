@@ -5,12 +5,17 @@ import Modal from '../UI/Modal.jsx';
 import EventForm from './EventForm.jsx';
 import { createNewEvent } from '../../utils/service.js';
 import ErrorBlock from '../UI/ErrorBlock.jsx';
+import { queryClient } from '../../utils/service.js';
 
 export default function NewEvent() {
   const navigate = useNavigate();
 
   const { mutate, isLoading, isError, error } = useMutation({
     mutationFn: createNewEvent,
+    onSuccess: () => {
+      navigate('/events');
+      queryClient.invalidateQueries({ queryKey: ['events'] });
+    },
   });
 
   function handleSubmit(formData) {
