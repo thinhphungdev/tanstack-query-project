@@ -3,25 +3,30 @@ import { Link, Outlet, useNavigate, useParams } from 'react-router-dom';
 import Header from '../Header.jsx';
 import ErrorBlock from '../../components/UI/ErrorBlock.jsx';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { deleteEvent, fetchEvent } from '../../utils/service.js';
+import { deleteEvent, fetchEvent, queryClient } from '../../utils/service.js';
 
 export default function EventDetails() {
   const { id: eventId } = useParams();
   const navigate = useNavigate();
+
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ['events', eventId],
     queryFn: () => fetchEvent(eventId),
   });
 
   const { mutate } = useMutation({
-    queryFn: () => deleteEvent(eventId),
+    mutationFn: deleteEvent,
     onSuccess: () => {
       navigate('/events');
+      queryClient.invalidateQueries({
+        queryKey: ['events'],
+        refetchType: 'none',
+      });
     },
   });
 
   function handleDelete() {
-    mutate();
+    mutate({ id: eventId });
   }
 
   let content;
@@ -58,7 +63,7 @@ export default function EventDetails() {
     content = (
       <>
         <header>
-          <h1>EVENT TITLE</h1>
+          <h1>{data.title}</h1>
           <nav>
             <button onClick={handleDelete}>Delete</button>
             <Link to='edit'>Edit</Link>
